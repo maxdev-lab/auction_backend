@@ -60,3 +60,12 @@ exports.markEmailAsVerified = async (id) => {
         [id]
     );
 };
+
+// 7. ID로 유저 정보 조회 (user_id)
+exports.findById = async (id) => {
+    const [rows] = await pool.execute(
+        'SELECT user_id, email, created_at FROM users WHERE user_id = ?',
+        [id]
+    );
+    return rows[0];
+};
