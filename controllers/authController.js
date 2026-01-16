@@ -133,7 +133,7 @@ exports.login = async (req, res) => {
       message: "로그인 성공",
       token,
       user: {
-        id: user.user_id,
+        user_id: user.user_id,
         email: user.email,
       },
     });
