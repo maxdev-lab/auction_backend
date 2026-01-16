@@ -17,8 +17,7 @@ exports.getMyInfo = async (req, res) => {
             code: 200,
             data: {
                 userId: user.user_id,            
-                email: user.email,
-                nickname: user.nickname,    
+                email: user.email, 
                 createdAt: user.created_at  
             }
         });
