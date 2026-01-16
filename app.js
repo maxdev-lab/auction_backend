@@ -15,6 +15,7 @@ app.use(express.json());
 // Swagger 연결
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
+// 인증 api
 app.use('/api/auth', authRoutes);
 
 app.get('/', (req, res) => {
