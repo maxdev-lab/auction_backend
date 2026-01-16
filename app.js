@@ -5,6 +5,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerFile = require('./swagger-output.json'); 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
+const fileRoutes = require('./routes/file');
 
 dotenv.config();
 
@@ -20,6 +21,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.use('/api/auth', authRoutes);
 // 유저 api
 app.use('/api/users', userRoutes);
+// 업로드 api
+app.use('/api/files', fileRoutes);
 
 app.get('/', (req, res) => {
     res.send('Auction Backend is running!');
