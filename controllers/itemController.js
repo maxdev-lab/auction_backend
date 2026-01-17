@@ -7,38 +7,41 @@ exports.createItem = async (req, res) => {
             title, 
             description, 
             category, 
-            startPrice, 
-            startTime, 
-            endTime, 
-            imageIds 
+            start_price,  
+            start_time,  
+            end_time,      
+            image_ids     
         } = req.body;
 
-        const userId = req.user.id; 
+        const userId = req.user.user_id; 
 
         // 1. 필수 값 체크
-        if (!title || !startPrice || !endTime) {
-            return res.status(400).json({ message: '필수 정보를 모두 입력해주세요.' });
+        if (!title || !start_price || !end_time) {
+            return res.status(400).json({ message: '제목, 시작가, 종료시간은 필수입니다.' });
         }
 
-        // 2. 아이템 생성 (DB Insert)
+        // 2. 아이템 생성 
         const newItemId = await Item.createItem({
             userId,
             title,
             description,
             category,
-            startPrice,
-            startTime: startTime || new Date(), // 없으면 현재시간
-            endTime
+            startPrice: start_price, 
+            startTime: start_time || new Date(),
+            endTime: end_time
         });
 
-        // 3. 이미지 연결 (업로드해둔 파일들에 item_id를 박아줌)
-        if (imageIds && imageIds.length > 0) {
-            await Item.linkImagesToItem(imageIds, newItemId);
+        // 3. 이미지 연결
+        if (image_ids && image_ids.length > 0) {
+            await Item.linkImagesToItem(image_ids, newItemId);
         }
 
         res.status(201).json({
+            code: 201,
             message: '물품이 성공적으로 등록되었습니다.',
-            itemId: newItemId
+            data: {
+                item_id: newItemId  
+            }
         });
 
     } catch (error) {

@@ -260,16 +260,16 @@
                 "category": {
                   "example": "any"
                 },
-                "startPrice": {
+                "start_price": {
                   "example": "any"
                 },
-                "startTime": {
+                "start_time": {
                   "example": "any"
                 },
-                "endTime": {
+                "end_time": {
                   "example": "any"
                 },
-                "imageIds": {
+                "image_ids": {
                   "example": "any"
                 }
               }

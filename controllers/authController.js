@@ -124,7 +124,7 @@ exports.login = async (req, res) => {
 
     // 4-3. JWT 토큰 발급
     const token = jwt.sign(
-      { id: user.user_id, email: user.email },
+      { user_id: user.user_id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
