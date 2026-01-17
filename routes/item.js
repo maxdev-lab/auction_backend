@@ -4,19 +4,22 @@ const itemController = require('../controllers/itemController');
 const authMiddleware = require('../middleware/auth');
 const bidController = require('../controllers/bidController');
 
-// POST /api/items
+// 1. 물품 등록
 router.post('/', authMiddleware, itemController.createItem);
 
-// GET /api/items
+// 2. 물품 전체조회
 router.get('/', itemController.getItems);
 
-// GET /api/items/:id
+// 3. 물품 상세조회
 router.get('/:id', itemController.getItemDetail);
 
-// POST /api/items/1/bids 
+// 4. 물품 입찰 
 router.post('/:id/bids', authMiddleware, bidController.placeBid);
 
-// GET /api/items/1/bids 
+// 5. 해당 물품 입찰 내역 조회 
 router.get('/:id/bids', bidController.getBids);
+
+// 6. 해당 물품 찜 (토글) 
+router.post('/:id/likes', authMiddleware, itemController.toggleLike);
 
 module.exports = router;
