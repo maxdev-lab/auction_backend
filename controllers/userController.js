@@ -3,7 +3,7 @@ const User = require("../models/userModel");
 // 1. 내 정보 조회
 exports.getMyInfo = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.user_id;
     const user = await User.findById(userId);
 
     if (!user) {
