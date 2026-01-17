@@ -57,3 +57,17 @@ exports.findImagesByItemId = async (itemId) => {
   );
   return rows;
 };
+
+// 6. 내가 등록한 물건 조회
+exports.findByUserId = async (userId) => {
+  const [rows] = await pool.execute(
+    `SELECT 
+        i.*, 
+        (SELECT id FROM files f WHERE f.item_id = i.id LIMIT 1) AS thumbnail_id
+     FROM items i
+     WHERE i.user_id = ?
+     ORDER BY i.created_at DESC`,
+    [userId]
+  );
+  return rows;
+};

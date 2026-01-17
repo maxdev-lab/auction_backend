@@ -52,3 +52,30 @@ exports.getBidCount = async (itemId) => {
   );
   return rows[0].count;
 };
+
+// 4. 내가 입찰한 내역 조회 
+exports.findBiddedItems = async (userId) => {
+  const [rows] = await pool.execute(
+    `SELECT DISTINCT 
+        i.id, i.title, i.current_price, i.end_time, i.status,
+        (SELECT id FROM files f WHERE f.item_id = i.id LIMIT 1) AS thumbnail_id
+     FROM bids b
+     JOIN items i ON b.item_id = i.id
+     WHERE b.user_id = ?
+     ORDER BY i.end_time ASC`, // 마감 임박한 순서로 정렬
+    [userId]
+  );
+  return rows;
+};
+
+// 5. 특정 물품에 대한 나의 입찰 내역 조회
+exports.findMyBidsForItem = async (userId, itemId) => {
+  const [rows] = await pool.execute(
+    `SELECT id, bid_price, created_at
+     FROM bids
+     WHERE user_id = ? AND item_id = ?
+     ORDER BY bid_price DESC`, // 높은 가격순
+    [userId, itemId]
+  );
+  return rows;
+};
