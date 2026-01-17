@@ -1,5 +1,7 @@
 const User = require("../models/userModel");
 const likeModel = require('../models/likeModel');
+const itemModel = require('../models/itemModel');
+const bidModel = require('../models/bidModel');
 
 // 내 정보 조회
 exports.getMyInfo = async (req, res) => {
@@ -49,6 +51,63 @@ exports.getMyLikes = async (req, res) => {
     });
 
     res.json(itemsWithImage);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '서버 오류' });
+  }
+};
+
+// 내가 판매 중인(등록한) 내역 조회
+exports.getMyItems = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const items = await itemModel.findByUserId(userId);
+
+    const result = items.map(item => ({
+      ...item,
+      thumbnail_url: item.thumbnail_id 
+        ? `${req.protocol}://${req.get('host')}/api/files/${item.thumbnail_id}`
+        : null
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '서버 오류' });
+  }
+};
+
+// 나의 입찰 내역 조회
+exports.getMyBiddedItems = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    
+    const items = await bidModel.findBiddedItems(userId);
+
+    const result = items.map(item => ({
+      ...item,
+      thumbnail_url: item.thumbnail_id 
+        ? `${req.protocol}://${req.get('host')}/api/files/${item.thumbnail_id}`
+        : null
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '서버 오류' });
+  }
+};
+
+
+// 특정 물품의 내 입찰 기록
+exports.getMyBidDetail = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const { id } = req.params;
+
+    const history = await bidModel.findMyBidsForItem(userId, id);
+    
+    res.json(history);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: '서버 오류' });
