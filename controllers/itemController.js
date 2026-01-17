@@ -11,7 +11,7 @@ exports.createItem = async (req, res) => {
         const startTime = req.body.start_time || new Date();
         const endTime = new Date(end_time);
 
-        // 1. 물품 만들기 (이름 통일됨)
+        // 물품 만들기 
         const itemId = await itemModel.createItem({
             userId,
             title,
@@ -22,7 +22,7 @@ exports.createItem = async (req, res) => {
             endTime
         });
 
-        // 2. 이미지 연결하기
+        // 이미지 연결하기
         const { image_ids } = req.body;
         if (image_ids && image_ids.length > 0) {
             await itemModel.linkImagesToItem(image_ids, itemId);
@@ -38,21 +38,19 @@ exports.createItem = async (req, res) => {
     }
 };
 
-// ★ 전체 목록 조회
+// 전체 목록 조회
 exports.getItems = async (req, res) => {
   try {
     const items = await itemModel.findAll();
 
-    // 가져온 리스트를 반복문 돌면서 'image_url' 필드 추가
     const itemsWithImage = items.map(item => {
-      // 썸네일 ID가 있으면 URL 만들고, 없으면 null (또는 기본 이미지)
       const imageUrl = item.thumbnail_id 
         ? `${req.protocol}://${req.get('host')}/api/files/${item.thumbnail_id}`
-        : null; // 이미지가 없는 경우
+        : null; 
 
       return {
         ...item,
-        thumbnail_url: imageUrl // ★ 여기에 URL을 담아서 보냅니다
+        thumbnail_url: imageUrl 
       };
     });
 
@@ -62,7 +60,8 @@ exports.getItems = async (req, res) => {
     res.status(500).json({ message: '서버 오류' });
   }
 };
-// ★ 상세 조회
+
+//  상세 조회
 exports.getItemDetail = async (req, res) => {
   try {
     const { id } = req.params;
