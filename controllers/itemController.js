@@ -1,51 +1,90 @@
-const Item = require('../models/itemModel');
+const itemModel = require('../models/itemModel'); 
+
 
 // 물품 등록
 exports.createItem = async (req, res) => {
     try {
-        const { 
-            title, 
-            description, 
-            category, 
-            start_price,  
-            start_time,  
-            end_time,      
-            image_ids     
-        } = req.body;
+        const { title, description, category, start_price, end_time } = req.body;
+        const userId = req.user.user_id;
+        
+        // 시간 설정 (없으면 현재 시간)
+        const startTime = req.body.start_time || new Date();
+        const endTime = new Date(end_time);
 
-        const userId = req.user.user_id; 
-
-        // 1. 필수 값 체크
-        if (!title || !start_price || !end_time) {
-            return res.status(400).json({ message: '제목, 시작가, 종료시간은 필수입니다.' });
-        }
-
-        // 2. 아이템 생성 
-        const newItemId = await Item.createItem({
+        // 1. 물품 만들기 (이름 통일됨)
+        const itemId = await itemModel.createItem({
             userId,
             title,
             description,
             category,
-            startPrice: start_price, 
-            startTime: start_time || new Date(),
-            endTime: end_time
+            startPrice: start_price,
+            startTime,
+            endTime
         });
 
-        // 3. 이미지 연결
+        // 2. 이미지 연결하기
+        const { image_ids } = req.body;
         if (image_ids && image_ids.length > 0) {
-            await Item.linkImagesToItem(image_ids, newItemId);
+            await itemModel.linkImagesToItem(image_ids, itemId);
         }
 
-        res.status(201).json({
-            code: 201,
-            message: '물품이 성공적으로 등록되었습니다.',
-            data: {
-                item_id: newItemId  
-            }
+        res.status(201).json({ 
+            message: '물품이 등록되었습니다.',
+            data: { itemId }
         });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: '물품 등록 실패' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: '서버 오류' });
     }
+};
+
+// ★ 전체 목록 조회
+exports.getItems = async (req, res) => {
+  try {
+    const items = await itemModel.findAll();
+
+    // 가져온 리스트를 반복문 돌면서 'image_url' 필드 추가
+    const itemsWithImage = items.map(item => {
+      // 썸네일 ID가 있으면 URL 만들고, 없으면 null (또는 기본 이미지)
+      const imageUrl = item.thumbnail_id 
+        ? `${req.protocol}://${req.get('host')}/api/files/${item.thumbnail_id}`
+        : null; // 이미지가 없는 경우
+
+      return {
+        ...item,
+        thumbnail_url: imageUrl // ★ 여기에 URL을 담아서 보냅니다
+      };
+    });
+
+    res.json(itemsWithImage);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '서버 오류' });
+  }
+};
+// ★ 상세 조회
+exports.getItemDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const item = await itemModel.findById(id);
+    if (!item) {
+      return res.status(404).json({ message: '물품을 찾을 수 없습니다.' });
+    }
+
+    const images = await itemModel.findImagesByItemId(id);
+
+    const itemWithImages = {
+        ...item,
+        images: images.map(img => ({
+            id: img.id,
+            url: `${req.protocol}://${req.get('host')}/api/files/${img.id}`
+        }))
+    };
+
+    res.json(itemWithImages);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '서버 오류' });
+  }
 };
