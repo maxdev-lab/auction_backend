@@ -5,43 +5,47 @@ const itemModel = require('../models/itemModel');
 exports.placeBid = async (req, res) => {
   try {
     const { id } = req.params; // item_id
-    const userId = req.user.user_id; // 로그인한 사람
+    const userId = req.user.user_id;
 
-    // 1. 물품 정보 가져오기 (가격을 알아야 하니까)
+    // 물품 정보 확인
     const item = await itemModel.findById(id);
     if (!item) {
       return res.status(404).json({ message: '물품이 존재하지 않습니다.' });
     }
 
-    // 2. 유효성 검사
-    // - 본인 물건 입찰 금지
+    // 유효성 검사 (본인 입찰 금지, 종료 확인)
     if (item.user_id === userId) {
       return res.status(400).json({ message: '자신의 물건에는 입찰할 수 없습니다.' });
     }
-    // - 경매 종료 여부 확인
     if (new Date(item.end_time) < new Date()) {
       return res.status(400).json({ message: '이미 종료된 경매입니다.' });
     }
 
-    // ★ 3. 가격 계산 로직 (핵심!)
-    // 증가액 = 시작가(start_price)의 5%
-    // 소수점 나오면 안되니까 Math.floor로 내림 처리
-    const increment = Math.floor(item.start_price * 0.05);
-    
-    // 만약 증가액이 0원이면(시작가 10원 등) 최소 100원은 오르게 설정 (선택사항)
-    const finalIncrement = increment < 100 ? 100 : increment; 
+    //현재 입찰 횟수 조회
+    const bidCount = await bidModel.getBidCount(id);
 
-    // 새로운 가격 = 현재가 + 증가액
-    const nextBidPrice = item.current_price + finalIncrement;
+    let nextBidPrice = 0;
+    let increment = 0;
 
-    // 4. DB에 저장 요청
+    if (bidCount === 0) {
+      nextBidPrice = item.start_price;
+      increment = 0;
+    } else {
+      // 5%씩 증가하게끔
+      increment = Math.floor(item.start_price * 0.05);
+      if (increment < 100) increment = 100;
+
+      nextBidPrice = item.current_price + increment;
+    }
+
+    // DB 저장
     await bidModel.createBid(userId, id, nextBidPrice);
 
     res.status(201).json({ 
       message: '입찰 성공!', 
       data: { 
-        increment: finalIncrement,  // 얼마 올랐는지
-        currentPrice: nextBidPrice  // 현재 얼마인지
+        increment,     
+        currentPrice: nextBidPrice 
       }
     });
 

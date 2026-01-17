@@ -1,34 +1,34 @@
 const pool = require('../config/db');
 
-// 입찰하기 (DB 트랜잭션: 입찰기록 저장 + 물품 현재가 갱신)
+// 1. 입찰하기 
 exports.createBid = async (userId, itemId, newPrice) => {
   const connection = await pool.getConnection();
   try {
-    await connection.beginTransaction(); // 안전장치 시작
+    await connection.beginTransaction(); 
 
-    // 1. bids 테이블에 기록 남기기
+    // bids 테이블에 기록 남기기
     await connection.execute(
       `INSERT INTO bids (user_id, item_id, bid_price) VALUES (?, ?, ?)`,
       [userId, itemId, newPrice]
     );
 
-    // 2. items 테이블의 current_price 변경하기
+    // current_price 갱신
     await connection.execute(
       `UPDATE items SET current_price = ? WHERE id = ?`,
       [newPrice, itemId]
     );
 
-    await connection.commit(); // 저장 확정
+    await connection.commit(); 
     return true;
   } catch (err) {
-    await connection.rollback(); // 실패하면 되돌리기
+    await connection.rollback(); 
     throw err;
   } finally {
     connection.release();
   }
 };
 
-// 특정 물품의 입찰 내역 조회
+// 2. 특정 물품의 입찰 내역 조회
 exports.getBidsByItemId = async (itemId) => {
   const [rows] = await pool.execute(
     `SELECT 
@@ -42,4 +42,13 @@ exports.getBidsByItemId = async (itemId) => {
     [itemId]
   );
   return rows;
+};
+
+// 3. 입찰 횟수 확인용(첫 입찰일때부터 증가한 금액으로 시작해서 추가함)
+exports.getBidCount = async (itemId) => {
+  const [rows] = await pool.execute(
+    'SELECT COUNT(*) as count FROM bids WHERE item_id = ?', 
+    [itemId]
+  );
+  return rows[0].count;
 };

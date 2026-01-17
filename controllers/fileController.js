@@ -50,7 +50,7 @@ exports.upload = async (req, res) => {
   }
 };
 
-// 이미지 보기 (GET /api/files/:id)
+// 이미지 보기
 exports.viewFile = async (req, res) => {
   try {
     const { id } = req.params;

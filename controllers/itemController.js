@@ -1,5 +1,5 @@
 const itemModel = require('../models/itemModel'); 
-
+const likeModel = require('../models/likeModel');
 
 // 물품 등록
 exports.createItem = async (req, res) => {
@@ -82,6 +82,27 @@ exports.getItemDetail = async (req, res) => {
     };
 
     res.json(itemWithImages);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '서버 오류' });
+  }
+};
+
+exports.toggleLike = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const itemId = req.params.id;
+
+    const isLiked = await likeModel.checkLike(userId, itemId);
+
+    if (isLiked) {
+      await likeModel.removeLike(userId, itemId);
+      return res.status(200).json({ message: '찜 취소', liked: false });
+    } else {
+      await likeModel.addLike(userId, itemId);
+      return res.status(201).json({ message: '찜 설정', liked: true });
+    }
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: '서버 오류' });

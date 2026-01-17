@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
+const likeModel = require('../models/likeModel');
 
-// 1. 내 정보 조회
+// 내 정보 조회
 exports.getMyInfo = async (req, res) => {
   try {
     const userId = req.user.user_id;
@@ -27,5 +28,29 @@ exports.getMyInfo = async (req, res) => {
       code: 500,
       message: "서버 오류",
     });
+  }
+};
+
+// 찜 한 목록 확인
+exports.getMyLikes = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const items = await likeModel.getLikedItems(userId);
+
+    const itemsWithImage = items.map(item => {
+      const imageUrl = item.thumbnail_id 
+        ? `${req.protocol}://${req.get('host')}/api/files/${item.thumbnail_id}`
+        : null;
+
+      return {
+        ...item,
+        thumbnail_url: imageUrl
+      };
+    });
+
+    res.json(itemsWithImage);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '서버 오류' });
   }
 };
