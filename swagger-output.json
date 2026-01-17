@@ -251,6 +251,9 @@
             "schema": {
               "type": "object",
               "properties": {
+                "start_time": {
+                  "example": "any"
+                },
                 "title": {
                   "example": "any"
                 },
@@ -261,9 +264,6 @@
                   "example": "any"
                 },
                 "start_price": {
-                  "example": "any"
-                },
-                "start_time": {
                   "example": "any"
                 },
                 "end_time": {
@@ -280,11 +280,43 @@
           "201": {
             "description": "Created"
           },
-          "400": {
-            "description": "Bad Request"
-          },
           "401": {
             "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/items/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
           },
           "500": {
             "description": "Internal Server Error"
