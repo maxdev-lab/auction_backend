@@ -26,6 +26,7 @@ exports.linkImagesToItem = async (fileIds, itemId) => {
     );
 };
 
+// 3. 물품 전체 조회 (썸넬 추가 쿼리)
 exports.findAll = async () => {
   const [rows] = await pool.execute(
     `
