@@ -8,10 +8,10 @@ const bidController = require('../controllers/bidController');
 router.post('/', authMiddleware, itemController.createItem);
 
 // 2. 물품 전체조회
-router.get('/', itemController.getItems);
+router.get('/', authMiddleware, itemController.getItems);
 
 // 3. 물품 상세조회
-router.get('/:id', itemController.getItemDetail);
+router.get('/:id', authMiddleware, itemController.getItem);
 
 // 4. 물품 입찰 
 router.post('/:id/bids', authMiddleware, bidController.placeBid);

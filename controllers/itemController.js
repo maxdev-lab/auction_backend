@@ -41,20 +41,20 @@ exports.createItem = async (req, res) => {
 // 전체 목록 조회
 exports.getItems = async (req, res) => {
   try {
-    const items = await itemModel.findAll();
+    const userId = req.user.user_id;
 
-    const itemsWithImage = items.map(item => {
-      const imageUrl = item.thumbnail_id 
+    const items = await itemModel.findAll(userId);
+
+    const result = items.map(item => ({
+      ...item,
+      is_liked: !!item.is_liked, 
+      
+      thumbnail_url: item.thumbnail_id 
         ? `${req.protocol}://${req.get('host')}/api/files/${item.thumbnail_id}`
-        : null; 
+        : null
+    }));
 
-      return {
-        ...item,
-        thumbnail_url: imageUrl 
-      };
-    });
-
-    res.json(itemsWithImage);
+    res.json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: '서버 오류' });
@@ -62,32 +62,38 @@ exports.getItems = async (req, res) => {
 };
 
 //  상세 조회
-exports.getItemDetail = async (req, res) => {
+exports.getItem = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user.user_id; 
 
-    const item = await itemModel.findById(id);
+    const item = await itemModel.findById(id, userId);
     if (!item) {
-      return res.status(404).json({ message: '물품을 찾을 수 없습니다.' });
+      return res.status(404).json({ message: '물품이 존재하지 않습니다.' });
     }
 
     const images = await itemModel.findImagesByItemId(id);
 
-    const itemWithImages = {
-        ...item,
-        images: images.map(img => ({
-            id: img.id,
-            url: `${req.protocol}://${req.get('host')}/api/files/${img.id}`
-        }))
+    const imagesWithUrl = images.map(img => ({
+      id: img.id,
+      url: `${req.protocol}://${req.get('host')}/api/files/${img.id}`
+    }));
+
+    const result = {
+      ...item,
+      is_liked: !!item.is_liked, 
+      images: imagesWithUrl 
     };
 
-    res.json(itemWithImages);
+    res.json(result);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: '서버 오류' });
   }
 };
 
+// 찜 누르기(토글)
 exports.toggleLike = async (req, res) => {
   try {
     const userId = req.user.user_id;
