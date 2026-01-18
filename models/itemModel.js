@@ -9,14 +9,14 @@ exports.createItem = async (data) => {
     (user_id, title, description, category, start_price, current_price, start_time, end_time) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      userId, 
-      title, 
-      description || null,  
-      category, 
-      startPrice, 
-      startPrice,            
-      startTime || new Date(), 
-      endTime       
+      userId,
+      title,
+      description,
+      category,
+      startPrice,
+      startPrice,
+      startTime,
+      endTime,
     ]
   );
   return result.insertId;
@@ -31,7 +31,7 @@ exports.linkImagesToItem = async (fileIds, itemId) => {
 
   await pool.execute(
     `UPDATE files SET item_id = ? WHERE id IN (${placeholders})`,
-    [itemId, ...fileIds]
+    [itemId, ...fileIds],
   );
 };
 
@@ -57,7 +57,7 @@ exports.findAll = async (userId) => {
      JOIN users u ON i.user_id = u.user_id
      
      ORDER BY i.created_at DESC`,
-    [userId || null]
+    [userId || null],
   );
   return rows;
 };
@@ -78,8 +78,7 @@ exports.findById = async (id, userId) => {
 
      FROM items i
      WHERE id = ?`,
-     
-    [userId || null, id] 
+    [id, userId || null]
   );
   return rows[0];
 };
@@ -88,7 +87,7 @@ exports.findById = async (id, userId) => {
 exports.findImagesByItemId = async (itemId) => {
   const [rows] = await pool.execute(
     `SELECT id, file_path FROM files WHERE item_id = ?`,
-    [itemId]
+    [itemId],
   );
   return rows;
 };
@@ -110,7 +109,7 @@ exports.findByUserId = async (userId) => {
      FROM items i
      WHERE i.user_id = ?
      ORDER BY i.created_at DESC`,
-    [userId]
+    [userId],
   );
   return rows;
 };
