@@ -4,7 +4,7 @@ const itemModel = require('../models/itemModel');
 // 입찰하기 (버튼 누르면 자동 증액)
 exports.placeBid = async (req, res) => {
   try {
-    const { id } = req.params; // item_id
+    const { id } = req.params; 
     const userId = req.user.user_id;
 
     // 물품 정보 확인

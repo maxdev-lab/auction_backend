@@ -113,3 +113,26 @@ exports.getMyBidDetail = async (req, res) => {
     res.status(500).json({ message: '서버 오류' });
   }
 };
+
+// 내가 판매 중인(등록한) 내역 조회
+exports.getMyItems = async (req, res) => {
+  try {
+    const userId = req.user.user_id; // 로그인한 내 ID
+    
+    // 모델에서 내 물건들 가져오기
+    const items = await itemModel.findByUserId(userId);
+
+    // 데이터 가공 (썸네일 URL 만들기)
+    const result = items.map(item => ({
+      ...item,
+      thumbnail_url: item.thumbnail_id 
+        ? `${req.protocol}://${req.get('host')}/api/files/${item.thumbnail_id}`
+        : null
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '서버 오류' });
+  }
+};

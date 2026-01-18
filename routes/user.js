@@ -18,4 +18,7 @@ router.get('/me/bids', authMiddleware, userController.getMyBiddedItems);
 // 5. 특정 물품에 대한 나의 입찰 상세 기록
 router.get('/me/bids/:id', authMiddleware, userController.getMyBidDetail);
 
+// 6. 내 판매 내역 조회
+router.get('/me/items', authMiddleware, userController.getMyItems);
+
 module.exports = router;
