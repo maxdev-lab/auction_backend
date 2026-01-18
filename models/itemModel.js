@@ -31,22 +31,24 @@ exports.findAll = async (userId) => {
   const [rows] = await pool.execute(
     `SELECT 
         i.*,
+        
+        SUBSTRING_INDEX(u.email, '@', 1) AS username,
+
         CASE 
           WHEN i.end_time < NOW() THEN 'CLOSED' 
           ELSE i.status 
         END AS status,
         
         (SELECT id FROM files f WHERE f.item_id = i.id LIMIT 1) AS thumbnail_id,
-        
         (SELECT COUNT(*) FROM bids b WHERE b.item_id = i.id) AS bid_count,
-        
         (SELECT COUNT(*) FROM likes l WHERE l.item_id = i.id) AS like_count,
-        
         (SELECT COUNT(*) FROM likes l2 WHERE l2.item_id = i.id AND l2.user_id = ?) AS is_liked
 
      FROM items i
+     JOIN users u ON i.user_id = u.user_id
+     
      ORDER BY i.created_at DESC`,
-    [userId || null] 
+    [userId || null]
   );
   return rows;
 };
