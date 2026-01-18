@@ -8,7 +8,7 @@ exports.placeBid = async (req, res) => {
     const userId = req.user.user_id;
 
     // 물품 정보 확인
-    const item = await itemModel.findById(id);
+    const item = await itemModel.findById(id, userId);
     if (!item) {
       return res.status(404).json({ message: '물품이 존재하지 않습니다.' });
     }
