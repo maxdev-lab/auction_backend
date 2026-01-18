@@ -27,24 +27,47 @@ exports.linkImagesToItem = async (fileIds, itemId) => {
 };
 
 // 3. 물품 전체 조회 (썸넬 추가 쿼리)
-exports.findAll = async () => {
+exports.findAll = async (userId) => {
   const [rows] = await pool.execute(
-    `
-    SELECT 
-      i.*, 
-      (SELECT id FROM files f WHERE f.item_id = i.id LIMIT 1) AS thumbnail_id
-    FROM items i
-    ORDER BY i.created_at DESC
-    `
+    `SELECT 
+        i.*,
+        CASE 
+          WHEN i.end_time < NOW() THEN 'CLOSED' 
+          ELSE i.status 
+        END AS status,
+        
+        (SELECT id FROM files f WHERE f.item_id = i.id LIMIT 1) AS thumbnail_id,
+        
+        (SELECT COUNT(*) FROM bids b WHERE b.item_id = i.id) AS bid_count,
+        
+        (SELECT COUNT(*) FROM likes l WHERE l.item_id = i.id) AS like_count,
+        
+        (SELECT COUNT(*) FROM likes l2 WHERE l2.item_id = i.id AND l2.user_id = ?) AS is_liked
+
+     FROM items i
+     ORDER BY i.created_at DESC`,
+    [userId || null] 
   );
   return rows;
 };
 
 // 4. 물품 상세 조회
-exports.findById = async (id) => {
+exports.findById = async (id, userId) => {
   const [rows] = await pool.execute(
-    `SELECT * FROM items WHERE id = ?`, 
-    [id]
+    `SELECT 
+        i.*,
+        CASE 
+          WHEN i.end_time < NOW() THEN 'CLOSED' 
+          ELSE i.status 
+        END AS status,
+        
+        (SELECT COUNT(*) FROM bids b WHERE b.item_id = i.id) AS bid_count,
+        (SELECT COUNT(*) FROM likes l WHERE l.item_id = i.id) AS like_count,
+        (SELECT COUNT(*) FROM likes l2 WHERE l2.item_id = i.id AND l2.user_id = ?) AS is_liked
+
+     FROM items i
+     WHERE id = ?`, 
+    [userId || null, id] 
   );
   return rows[0];
 };
@@ -63,7 +86,16 @@ exports.findByUserId = async (userId) => {
   const [rows] = await pool.execute(
     `SELECT 
         i.*, 
-        (SELECT id FROM files f WHERE f.item_id = i.id LIMIT 1) AS thumbnail_id
+        CASE 
+          WHEN i.end_time < NOW() THEN 'CLOSED' 
+          ELSE i.status 
+        END AS status,
+        (SELECT id FROM files f WHERE f.item_id = i.id LIMIT 1) AS thumbnail_id,
+        
+        -- 내 물건 목록에서도 통계가 보이면 좋음
+        (SELECT COUNT(*) FROM bids b WHERE b.item_id = i.id) AS bid_count,
+        (SELECT COUNT(*) FROM likes l WHERE l.item_id = i.id) AS like_count
+
      FROM items i
      WHERE i.user_id = ?
      ORDER BY i.created_at DESC`,
