@@ -4,8 +4,12 @@ const itemModel = require("../models/itemModel");
 // 입찰하기 (버튼 누르면 자동 증액)
 exports.placeBid = async (req, res) => {
   try {
+<<<<<<< HEAD
+    const { id } = req.params; 
+=======
     const { id } = req.params; // item_id
     console.log(`요청한 유저 id: ${id}`);
+>>>>>>> develop
     const userId = req.user.user_id;
     console.log(`요청한 유저 id: ${userId}`);
 

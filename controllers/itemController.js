@@ -114,3 +114,61 @@ exports.toggleLike = async (req, res) => {
     res.status(500).json({ message: '서버 오류' });
   }
 };
+
+// 물품 수정
+exports.updateItem = async (req, res) => {
+  try {
+    const { id } = req.params;          
+    const userId = req.user.user_id;    
+    const { title, description, category, end_time, status } = req.body;
+
+    const item = await itemModel.findById(id, userId);
+    
+    if (!item) {
+      return res.status(404).json({ message: '물품이 존재하지 않습니다.' });
+    }
+
+    if (item.user_id !== userId) {
+      return res.status(403).json({ message: '본인의 물품만 수정할 수 있습니다.' });
+    }
+
+    await itemModel.updateItem(id, {
+      title: title || item.title,
+      description: description || item.description,
+      category: category || item.category,
+      end_time: end_time || item.end_time,
+      status: status || item.status
+    });
+
+    res.json({ message: '수정이 완료되었습니다.' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '서버 오류' });
+  }
+};
+
+// 물품 삭제 
+exports.deleteItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.user_id;
+
+    const item = await itemModel.findById(id, userId);
+    if (!item) {
+      return res.status(404).json({ message: '물품이 존재하지 않습니다.' });
+    }
+
+    if (item.user_id !== userId) {
+      return res.status(403).json({ message: '본인의 물품만 삭제할 수 있습니다.' });
+    }
+
+    await itemModel.deleteItem(id);
+
+    res.json({ message: '삭제가 완료되었습니다.' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '서버 오류' });
+  }
+};

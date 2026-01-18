@@ -22,4 +22,10 @@ router.get('/:id/bids', bidController.getBids);
 // 6. 해당 물품 찜 (토글) 
 router.post('/:id/likes', authMiddleware, itemController.toggleLike);
 
+// 7. 물품 수정
+router.put('/:id', authMiddleware, itemController.updateItem);
+
+// 8. 물품 삭제
+router.delete('/:id', authMiddleware, itemController.deleteItem);
+
 module.exports = router;
