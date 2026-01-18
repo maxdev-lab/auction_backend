@@ -1,29 +1,45 @@
-const pool = require('../config/db');
+const pool = require("../config/db");
 
 // 1. 물품 등록
 exports.createItem = async (data) => {
+  const {
+    userId,
+    title,
+    description,
+    category,
+    startPrice,
+    startTime,
+    endTime,
+  } = data;
 
-    const { userId, title, description, category, startPrice, startTime, endTime } = data;
-    
-    const [result] = await pool.execute(
-        `INSERT INTO items 
+  const [result] = await pool.execute(
+    `INSERT INTO items 
         (user_id, title, description, category, start_price, current_price, start_time, end_time) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [userId, title, description, category, startPrice, startPrice, startTime, endTime]
-    );
-    return result.insertId;
+    [
+      userId,
+      title,
+      description,
+      category,
+      startPrice,
+      startPrice,
+      startTime,
+      endTime,
+    ]
+  );
+  return result.insertId;
 };
 
 // 2. 이미지 연결
 exports.linkImagesToItem = async (fileIds, itemId) => {
-    if (!fileIds || fileIds.length === 0) return;
+  if (!fileIds || fileIds.length === 0) return;
 
-    const placeholders = fileIds.map(() => '?').join(',');
-    
-    await pool.execute(
-        `UPDATE files SET item_id = ? WHERE id IN (${placeholders})`,
-        [itemId, ...fileIds]
-    );
+  const placeholders = fileIds.map(() => "?").join(",");
+
+  await pool.execute(
+    `UPDATE files SET item_id = ? WHERE id IN (${placeholders})`,
+    [itemId, ...fileIds]
+  );
 };
 
 // 3. 물품 전체 조회 (썸넬 추가 쿼리)
@@ -68,13 +84,13 @@ exports.findById = async (id, userId) => {
         (SELECT COUNT(*) FROM likes l2 WHERE l2.item_id = i.id AND l2.user_id = ?) AS is_liked
 
      FROM items i
-     WHERE id = ?`, 
-    [userId || null, id] 
+     WHERE id = ?`,
+    [id, userId || null]
   );
   return rows[0];
 };
 
-// 5. 특정 물품의 이미지들 가져오기 
+// 5. 특정 물품의 이미지들 가져오기
 exports.findImagesByItemId = async (itemId) => {
   const [rows] = await pool.execute(
     `SELECT id, file_path FROM files WHERE item_id = ?`,
