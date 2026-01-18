@@ -2,8 +2,16 @@ const pool = require("../config/db");
 
 // 1. 물품 등록
 exports.createItem = async (data) => {
-  const { userId, title, description, category, startPrice, startTime, endTime } = data;
-  
+  const {
+    userId,
+    title,
+    description,
+    category,
+    startPrice,
+    startTime,
+    endTime,
+  } = data;
+
   const [result] = await pool.execute(
     `INSERT INTO items 
     (user_id, title, description, category, start_price, current_price, start_time, end_time) 
@@ -17,11 +25,10 @@ exports.createItem = async (data) => {
       startPrice,
       startTime,
       endTime,
-    ]
+    ],
   );
   return result.insertId;
 };
-
 
 // 2. 이미지 연결
 exports.linkImagesToItem = async (fileIds, itemId) => {
@@ -78,7 +85,7 @@ exports.findById = async (id, userId) => {
 
      FROM items i
      WHERE id = ?`,
-    [id, userId || null]
+    [userId || null, id],
   );
   return rows[0];
 };
@@ -117,43 +124,17 @@ exports.findByUserId = async (userId) => {
 // 7. 물품 수정
 exports.updateItem = async (itemId, data) => {
   const { title, description, category, end_time, status } = data;
-  
+
   await pool.execute(
     `UPDATE items 
      SET title = ?, description = ?, category = ?, end_time = ?, status = ?
      WHERE id = ?`,
-    [title, description, category, end_time, status, itemId]
+    [title, description, category, end_time, status, itemId],
   );
 };
 
 // 8. 물품 삭제
 exports.deleteItem = async (itemId) => {
-  await pool.execute(
-    'DELETE FROM items WHERE id = ?', 
-    [itemId]
-  );
+  await pool.execute("DELETE FROM items WHERE id = ?", [itemId]);
 };
 
-// 9. 내가 등록한 물건 조회 (마이페이지용)
-exports.findByUserId = async (userId) => {
-  const [rows] = await pool.execute(
-    `SELECT 
-        i.*, 
-        
-        CASE 
-          WHEN i.end_time < NOW() THEN 'CLOSED' 
-          ELSE i.status 
-        END AS status,
-        
-        (SELECT id FROM files f WHERE f.item_id = i.id LIMIT 1) AS thumbnail_id,
-        
-        (SELECT COUNT(*) FROM bids b WHERE b.item_id = i.id) AS bid_count,
-        (SELECT COUNT(*) FROM likes l WHERE l.item_id = i.id) AS like_count
-
-     FROM items i
-     WHERE i.user_id = ?
-     ORDER BY i.created_at DESC`,
-    [userId]
-  );
-  return rows;
-};
