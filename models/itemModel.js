@@ -2,8 +2,16 @@ const pool = require("../config/db");
 
 // 1. 물품 등록
 exports.createItem = async (data) => {
-  const { userId, title, description, category, startPrice, startTime, endTime } = data;
-  
+  const {
+    userId,
+    title,
+    description,
+    category,
+    startPrice,
+    startTime,
+    endTime,
+  } = data;
+
   const [result] = await pool.execute(
     `INSERT INTO items 
     (user_id, title, description, category, start_price, current_price, start_time, end_time) 
@@ -17,11 +25,10 @@ exports.createItem = async (data) => {
       startPrice,
       startTime,
       endTime,
-    ]
+    ],
   );
   return result.insertId;
 };
-
 
 // 2. 이미지 연결
 exports.linkImagesToItem = async (fileIds, itemId) => {
@@ -78,7 +85,7 @@ exports.findById = async (id, userId) => {
 
      FROM items i
      WHERE id = ?`,
-    [userId || null, id]
+    [userId || null, id],
   );
   return rows[0];
 };
@@ -97,7 +104,7 @@ exports.findByUserId = async (userId) => {
   const [rows] = await pool.execute(
     `SELECT 
         i.*,
-        u.email, 
+        SUBSTRING_INDEX(u.email, '@', 1) AS username, 
         CASE 
           WHEN i.end_time < NOW() THEN 'CLOSED' 
           ELSE i.status 
@@ -117,25 +124,21 @@ exports.findByUserId = async (userId) => {
   return rows;
 };
 
-
 // 7. 물품 수정
 exports.updateItem = async (itemId, data) => {
   const { title, description, category, end_time, status } = data;
-  
+
   await pool.execute(
     `UPDATE items 
      SET title = ?, description = ?, category = ?, end_time = ?, status = ?
      WHERE id = ?`,
-    [title, description, category, end_time, status, itemId]
+    [title, description, category, end_time, status, itemId],
   );
 };
 
 // 8. 물품 삭제
 exports.deleteItem = async (itemId) => {
-  await pool.execute(
-    'DELETE FROM items WHERE id = ?', 
-    [itemId]
-  );
+  await pool.execute("DELETE FROM items WHERE id = ?", [itemId]);
 };
 
 // 9. 이미지 재등록
@@ -146,14 +149,14 @@ exports.updateItemImages = async (itemId, fileIds) => {
 
     await connection.execute(
       `UPDATE files SET item_id = NULL WHERE item_id = ?`,
-      [itemId]
+      [itemId],
     );
 
     if (fileIds && fileIds.length > 0) {
-      const placeholders = fileIds.map(() => '?').join(',');
+      const placeholders = fileIds.map(() => "?").join(",");
       await connection.execute(
         `UPDATE files SET item_id = ? WHERE id IN (${placeholders})`,
-        [itemId, ...fileIds]
+        [itemId, ...fileIds],
       );
     }
 
@@ -170,7 +173,7 @@ exports.updateItemImages = async (itemId, fileIds) => {
 exports.updateCurrentPrice = async (itemId, newPrice) => {
   const [result] = await pool.execute(
     `UPDATE items SET current_price = ? WHERE id = ?`,
-    [newPrice, itemId]
+    [newPrice, itemId],
   );
   return result;
 };
