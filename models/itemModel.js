@@ -64,6 +64,8 @@ exports.findAll = async (userId) => {
 
 // 4. 물품 상세 조회
 exports.findById = async (id, userId) => {
+  console.log(`[DEBUG] Item ID: ${id} (Type: ${typeof id})`);
+  console.log(`[DEBUG] User ID: ${userId} (Type: ${typeof userId})`);
   const [rows] = await pool.execute(
     `SELECT 
         i.*,
@@ -114,6 +116,7 @@ exports.findByUserId = async (userId) => {
   return rows;
 };
 
+
 // 7. 물품 수정
 exports.updateItem = async (itemId, data) => {
   const { title, description, category, end_time, status } = data;
@@ -132,28 +135,4 @@ exports.deleteItem = async (itemId) => {
     'DELETE FROM items WHERE id = ?', 
     [itemId]
   );
-};
-
-// 9. 내가 등록한 물건 조회 (마이페이지용)
-exports.findByUserId = async (userId) => {
-  const [rows] = await pool.execute(
-    `SELECT 
-        i.*, 
-        
-        CASE 
-          WHEN i.end_time < NOW() THEN 'CLOSED' 
-          ELSE i.status 
-        END AS status,
-        
-        (SELECT id FROM files f WHERE f.item_id = i.id LIMIT 1) AS thumbnail_id,
-        
-        (SELECT COUNT(*) FROM bids b WHERE b.item_id = i.id) AS bid_count,
-        (SELECT COUNT(*) FROM likes l WHERE l.item_id = i.id) AS like_count
-
-     FROM items i
-     WHERE i.user_id = ?
-     ORDER BY i.created_at DESC`,
-    [userId]
-  );
-  return rows;
 };
