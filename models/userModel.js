@@ -77,3 +77,12 @@ exports.updatePassword = async (userId, newPassword) => {
     [newPassword, userId]
   );
 };
+
+// 9. ID로 유저 정보 조회(비밀번호 포함이라 기존꺼 말고 새로 구현)
+exports.findByIdWithPassword = async (id) => {
+    const [rows] = await pool.execute(
+        'SELECT user_id, password FROM users WHERE user_id = ?',
+        [id]
+    );
+    return rows[0];
+};

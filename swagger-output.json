@@ -213,9 +213,8 @@
             "schema": {
               "type": "object",
               "properties": {
-                "password": {
-                  "example": "any"
-                }
+                "currentPassword": { "example": "any" },
+                "newPassword": { "example": "any" }
               }
             }
           }
