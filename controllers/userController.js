@@ -2,6 +2,7 @@ const User = require("../models/userModel");
 const likeModel = require('../models/likeModel');
 const itemModel = require('../models/itemModel');
 const bidModel = require('../models/bidModel');
+const bcrypt = require("bcrypt");
 
 // 내 정보 조회
 exports.getMyInfo = async (req, res) => {
@@ -117,9 +118,8 @@ exports.getMyBidDetail = async (req, res) => {
 // 내가 판매 중인(등록한) 내역 조회
 exports.getMyItems = async (req, res) => {
   try {
-    const userId = req.user.user_id; // 로그인한 내 ID
-    
-    // 모델에서 내 물건들 가져오기
+    const userId = req.user.user_id;
+
     const items = await itemModel.findByUserId(userId);
 
     // 데이터 가공 (썸네일 URL 만들기)
@@ -131,6 +131,28 @@ exports.getMyItems = async (req, res) => {
     }));
 
     res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '서버 오류' });
+  }
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.user_id; 
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ message: '변경할 비밀번호를 입력해주세요.' });
+    }
+
+    // 1. 비밀번호 암호화 (Hashing)
+    const saltRounds = 10; 
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    await User.updatePassword(userId, hashedPassword);
+
+    res.json({ message: '비밀번호가 성공적으로 변경되었습니다.' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: '서버 오류' });

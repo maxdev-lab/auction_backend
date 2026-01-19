@@ -118,19 +118,16 @@ exports.toggleLike = async (req, res) => {
 // 물품 수정
 exports.updateItem = async (req, res) => {
   try {
-    const { id } = req.params;          
-    const userId = req.user.user_id;    
-    const { title, description, category, end_time, status } = req.body;
+    const { id } = req.params;
+    const userId = req.user.user_id;
+    const { title, description, category, end_time, status, fileIds, image_ids } = req.body;
+    
+    const newImages = fileIds || image_ids; 
 
     const item = await itemModel.findById(id, userId);
-    
-    if (!item) {
-      return res.status(404).json({ message: '물품이 존재하지 않습니다.' });
-    }
+    if (!item) return res.status(404).json({ message: '물품이 존재하지 않습니다.' });
 
-    if (item.user_id !== userId) {
-      return res.status(403).json({ message: '본인의 물품만 수정할 수 있습니다.' });
-    }
+    if (item.user_id !== userId) return res.status(403).json({ message: '본인의 물품만 수정할 수 있습니다.' });
 
     await itemModel.updateItem(id, {
       title: title || item.title,
@@ -139,6 +136,10 @@ exports.updateItem = async (req, res) => {
       end_time: end_time || item.end_time,
       status: status || item.status
     });
+
+    if (newImages) {
+      await itemModel.updateItemImages(id, newImages);
+    }
 
     res.json({ message: '수정이 완료되었습니다.' });
 
