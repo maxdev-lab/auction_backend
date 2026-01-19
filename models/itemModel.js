@@ -96,7 +96,8 @@ exports.findImagesByItemId = async (itemId) => {
 exports.findByUserId = async (userId) => {
   const [rows] = await pool.execute(
     `SELECT 
-        i.*, 
+        i.*,
+        u.email, 
         CASE 
           WHEN i.end_time < NOW() THEN 'CLOSED' 
           ELSE i.status 
@@ -104,12 +105,14 @@ exports.findByUserId = async (userId) => {
         (SELECT id FROM files f WHERE f.item_id = i.id LIMIT 1) AS thumbnail_id,
         
         (SELECT COUNT(*) FROM bids b WHERE b.item_id = i.id) AS bid_count,
-        (SELECT COUNT(*) FROM likes l WHERE l.item_id = i.id) AS like_count
+        (SELECT COUNT(*) FROM likes l WHERE l.item_id = i.id) AS like_count,
+        (SELECT COUNT(*) FROM likes l2 WHERE l2.item_id = i.id AND l2.user_id = ?) AS is_liked
 
      FROM items i
+     JOIN users u ON i.user_id = u.user_id
      WHERE i.user_id = ?
      ORDER BY i.created_at DESC`,
-    [userId],
+    [userId, userId],
   );
   return rows;
 };
