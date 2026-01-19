@@ -21,4 +21,7 @@ router.get('/me/bids/:id', authMiddleware, userController.getMyBidDetail);
 // 6. 내 판매 내역 조회
 router.get('/me/items', authMiddleware, userController.getMyItems);
 
+// 7. 내 정보(비번) 수정
+router.put('/me', authMiddleware, userController.updateProfile);
+
 module.exports = router;

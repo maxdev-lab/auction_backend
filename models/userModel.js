@@ -69,3 +69,11 @@ exports.findById = async (id) => {
     );
     return rows[0];
 };
+
+// 8. 비밀번호 최신화
+exports.updatePassword = async (userId, newPassword) => {
+  await pool.execute(
+    `UPDATE users SET password = ? WHERE user_id = ?`,
+    [newPassword, userId]
+  );
+};
