@@ -140,19 +140,30 @@ exports.getMyItems = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const userId = req.user.user_id; 
-    const { password } = req.body;
+    const { currentPassword, newPassword } = req.body;
 
-    if (!password) {
-      return res.status(400).json({ message: '변경할 비밀번호를 입력해주세요.' });
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: '현재 비밀번호와 새 비밀번호를 모두 입력해주세요.' });
     }
 
-    // 1. 비밀번호 암호화 (Hashing)
-    const saltRounds = 10; 
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const user = await User.findByIdWithPassword(userId);
+    if (!user) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
 
-    await User.updatePassword(userId, hashedPassword);
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    
+    if (!isMatch) {
+      return res.status(401).json({ message: '현재 비밀번호가 일치하지 않습니다.' });
+    }
+
+    const saltRounds = 10; 
+    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    await User.updatePassword(userId, hashedNewPassword);
 
     res.json({ message: '비밀번호가 성공적으로 변경되었습니다.' });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: '서버 오류' });
