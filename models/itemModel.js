@@ -162,3 +162,12 @@ exports.updateItemImages = async (itemId, fileIds) => {
     connection.release();
   }
 };
+
+// 10. 현재가 갱신
+exports.updateCurrentPrice = async (itemId, newPrice) => {
+  const [result] = await pool.execute(
+    `UPDATE items SET current_price = ? WHERE id = ?`,
+    [newPrice, itemId]
+  );
+  return result;
+};

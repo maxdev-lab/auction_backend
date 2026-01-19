@@ -23,25 +23,18 @@ exports.placeBid = async (req, res) => {
       return res.status(400).json({ message: "이미 종료된 경매입니다." });
     }
 
-    //현재 입찰 횟수 조회
-    const bidCount = await bidModel.getBidCount(id);
+    let nextBidPrice = Math.floor(item.current_price * 1.05);
+    
+    let increment = nextBidPrice - item.current_price;
 
-    let nextBidPrice = 0;
-    let increment = 0;
-
-    if (bidCount === 0) {
-      nextBidPrice = item.start_price;
-      increment = 0;
-    } else {
-      // 5%씩 증가하게끔
-      increment = Math.floor(item.start_price * 0.05);
-      if (increment < 100) increment = 100;
-
-      nextBidPrice = item.current_price + increment;
+    if (increment < 100) {
+      increment = 100;
+      nextBidPrice = item.current_price + 100;
     }
 
     // DB 저장
     await bidModel.createBid(userId, id, nextBidPrice);
+    await itemModel.updateCurrentPrice(id, nextBidPrice);
 
     res.status(201).json({
       message: "입찰 성공!",
